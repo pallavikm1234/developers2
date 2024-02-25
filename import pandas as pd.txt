@@ -1,0 +1,102 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+ 
+# Load items from CSV file
+def load_items():
+    try:
+        items_df = pd.read_csv('items.csv')
+    except FileNotFoundError:
+        print("Error: items.csv not found!")
+        items_df = pd.DataFrame(columns=['Item', 'Price', 'Quantity'])
+    return items_df
+ 
+def save_items(items_df):
+    items_df.to_csv('items.csv', index=False)
+ 
+def display_items(items_df):
+    print("Available Items:")
+    print(items_df)
+ 
+def owner_view(items_df):
+    while True:
+        print("\nOwner Menu:")
+        print("1. Display Items")
+        print("2. Add Item")
+        print("3. Remove Item")
+        print("4. Exit")
+        choice = input("Enter your choice: ")
+ 
+        if choice == '1':
+            display_items(items_df)
+        elif choice == '2':
+            item_name = input("Enter item name: ")
+            price = float(input("Enter price: "))
+            quantity = int(input("Enter quantity: "))
+            items_df = items_df.append({'Item': item_name, 'Price': price, 'Quantity': quantity}, ignore_index=True)
+            save_items(items_df)
+            print("Item added successfully!")
+        elif choice == '3':
+            display_items(items_df)
+            item_name = input("Enter item name to remove: ")
+            items_df = items_df[items_df['Item'] != item_name]
+            save_items(items_df)
+            print("Item removed successfully!")
+        elif choice == '4':
+            break
+        else:
+            print("Invalid choice! Please try again.")
+ 
+def customer_view(items_df):
+    cart = []
+ 
+    while True:
+        print("\nCustomer Menu:")
+        display_items(items_df)
+        print("c. Checkout")
+        choice = input("Enter the item number to add to cart (or c to checkout): ")
+ 
+        if choice == 'c':
+            break
+        elif choice.isdigit() and int(choice) in range(len(items_df)):
+            item_index = int(choice)
+            selected_item = items_df.iloc[item_index]
+            cart.append(selected_item)
+            print(f"{selected_item['Item']} added to cart.")
+        else:
+            print("Invalid choice! Please try again.")
+ 
+    if cart:
+        generate_bill(cart)
+        generate_pie_chart(cart)
+ 
+def generate_bill(cart):
+    total = 0
+    print("\n\n********** Bill **********")
+    print("Item\t\tPrice\t\tQuantity\tTotal amt of stock")
+    for item in cart:
+        item_total = item['Price']*item['Quantity']
+        total += item_total
+        print(f"{item['Item']}\t\t{item['Price']}\t\t{item['Quantity']}\t\t{item['Price'] * item['Quantity']}")
+    print(f"\nTotal: {total}")
+
+def generate_pie_chart(cart):
+    item_names = [item['Item'] for item in cart]
+    quantities = [item['Quantity'] for item in cart]
+    plt.figure(figsize=(8, 8))
+    plt.pie(quantities, labels=item_names, autopct='%1.1f%%')
+    plt.title('Items Purchased by Customer')
+    plt.axis('equal')
+    plt.show()
+
+# Main program
+if name == "main":
+    items_df = load_items()
+    print("Welcome to the Supermarket!")
+    user_type = input("Are you a customer or an owner? (Enter 'customer' or 'owner'): ")
+ 
+    if user_type.lower() == 'customer':
+        customer_view(items_df)
+    elif user_type.lower() == 'owner':
+        owner_view(items_df)
+    else:
+        print("Invalid choice! Please enter 'customer' or 'owner'.")
